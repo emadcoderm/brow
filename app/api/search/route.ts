@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 
-// API keys for rotation
 const API_KEYS = [
   'ba3b0732a47bf26269b3e9160ea7618022b61352',
   '2c9a5a6cbf34b0fbaeeec8756fa596fc57c5e529',
   'e5be0c24eb41e337bc213b243a366ee18612683b'
 ]
 
-// Simple counter for API rotation
 let apiIndex = 0
 
 const getNextApiKey = () => {
@@ -16,6 +14,8 @@ const getNextApiKey = () => {
   apiIndex = (apiIndex + 1) % API_KEYS.length
   return key
 }
+
+export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -28,62 +28,50 @@ export async function GET(request: NextRequest) {
 
   try {
     const apiKey = getNextApiKey()
-    const baseUrl = 'https://s1.ntrod.com/api'
     
-    // Map search types to API endpoints
-    const endpoints: Record<string, string> = {
-      all: '/search',
-      web: '/search',
-      video: '/videos',
-      audio: '/music',
-      image: '/images'
+    // استفاده از API واقعی
+    const apiUrl = `https://s1.ntrod.com/api/search?q=${encodeURIComponent(query)}&api_key=${apiKey}`
+    
+    console.log('Calling API:', apiUrl)
+
+    const response = await axios.get(apiUrl, {
+      timeout: 10000,
+      headers: {
+        'Accept': 'application/json',
+      }
+    })
+
+    console.log('API Response:', response.data)
+
+    // بررسی ساختار پاسخ API
+    if (!response.data || !Array.isArray(response.data)) {
+      throw new Error('Invalid API response format')
     }
 
-    const endpoint = endpoints[type] || '/search'
-    const url = `${baseUrl}${endpoint}?q=${encodeURIComponent(query)}&api_key=${apiKey}`
-
-    const response = await axios.get(url)
-
-    // Transform the API response to match our structure
     const transformedResults = {
       query: query,
-      results: (response.data.results || []).map((result: any) => ({
-        title: result.title || 'Untitled',
-        description: result.description || '',
+      results: response.data.map((result: any) => ({
+        title: result.title || result.headline || 'No title',
+        description: result.description || result.snippet || '',
         url: result.url || result.link || '#',
-        domain: new URL(result.url || result.link || 'https://example.com').hostname,
+        domain: result.domain || (result.url ? new URL(result.url).hostname : 'unknown'),
         thumbnail: result.thumbnail || result.image
       })),
-      total_results: response.data.total_results || 0,
-      search_time: (response.data.search_time || 0.0).toFixed(2)
+      total_results: response.data.length || 0,
+      search_time: '0.00'
     }
 
     return NextResponse.json(transformedResults)
   } catch (error: any) {
-    console.error('Search API error:', error)
+    console.error('Search API error:', error.message)
     
-    // Return mock data for demonstration
+    // Return empty results instead of fake data
     return NextResponse.json({
       query: query,
-      results: [
-        {
-          title: 'Example Result 1',
-          description: 'This is an example search result. The API integration will work once the endpoint is properly configured.',
-          url: 'https://example.com',
-          domain: 'example.com',
-          thumbnail: null
-        },
-        {
-          title: 'Example Result 2',
-          description: 'Another example result to demonstrate the search functionality. Replace with your actual API integration.',
-          url: 'https://example2.com',
-          domain: 'example2.com',
-          thumbnail: null
-        }
-      ],
-      total_results: 2,
-      search_time: '0.02'
+      results: [],
+      total_results: 0,
+      search_time: '0.00',
+      error: 'API is temporarily unavailable. Please try again later.'
     })
   }
 }
-

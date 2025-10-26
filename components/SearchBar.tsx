@@ -4,15 +4,19 @@ import { useState, useRef, useEffect } from 'react'
 
 interface SearchBarProps {
   onSearch: (query: string) => void
+  showResultsPage?: boolean
+  defaultQuery?: string
 }
 
-export default function SearchBar({ onSearch }: SearchBarProps) {
-  const [query, setQuery] = useState('')
+export default function SearchBar({ onSearch, showResultsPage = false, defaultQuery = '' }: SearchBarProps) {
+  const [query, setQuery] = useState(defaultQuery)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+    if (!showResultsPage) {
+      inputRef.current?.focus()
+    }
+  }, [showResultsPage])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,61 +25,77 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
     }
   }
 
+  if (showResultsPage) {
+    // Bar for results page - مثل Google
+    return (
+      <form onSubmit={handleSubmit} className="flex-1 max-w-2xl">
+        <div className="relative flex items-center">
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full pl-12 pr-12 py-2 text-sm rounded-full border border-gray-300 hover:shadow-md focus:outline-none focus:shadow-md focus:border-transparent"
+            placeholder=""
+          />
+          <div className="absolute left-3 flex items-center gap-3">
+            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <div className="absolute right-3 flex items-center gap-2">
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+            <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+          </div>
+        </div>
+      </form>
+    )
+  }
+
+  // Main search bar - مثل Google home page
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none">
-          <svg
-            className="w-6 h-6 text-white/70"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
+      <div className="relative max-w-lg mx-auto">
+        <div className="absolute inset-0 flex items-center">
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full pl-14 pr-14 py-3 text-base rounded-full border border-gray-300 hover:shadow-md focus:outline-none focus:shadow-md focus:border-transparent transition-all"
+          />
+        </div>
+        <div className="absolute left-3 flex items-center">
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full pl-14 pr-14 py-4 text-lg rounded-full glass text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
-          placeholder="Search the web..."
-        />
-        <div className="absolute inset-y-0 right-0 flex items-center pr-5">
-          {query && (
+        {query && (
+          <div className="absolute right-3 flex items-center gap-2">
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="text-white/70 hover:text-white transition-colors"
+              className="text-gray-400 hover:text-gray-600"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-          )}
-        </div>
-      </div>
-      <div className="flex justify-center gap-4 mt-6">
-        <button
-          type="submit"
-          className="px-6 py-2 glass text-white rounded-lg hover:glass-strong transition-all"
-        >
-          Aula Search
-        </button>
-        <button
-          type="button"
-          className="px-6 py-2 glass text-white rounded-lg hover:glass-strong transition-all"
-        >
-          I&apos;m Feeling Lucky
-        </button>
+          </div>
+        )}
       </div>
     </form>
   )
 }
-
