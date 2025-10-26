@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+
 interface SearchResultsProps {
   results: any
   query: string
@@ -19,7 +21,7 @@ export default function SearchResults({ results, query, isLoading }: SearchResul
   if (!results || !results.results || results.results.length === 0) {
     return (
       <div className="mt-8 text-center text-white">
-        <p>No results found for "{query}"</p>
+        <p>No results found for &quot;{query}&quot;</p>
       </div>
     )
   }
@@ -75,8 +77,14 @@ export default function SearchResults({ results, query, isLoading }: SearchResul
                 <p className="text-white/80 leading-relaxed">{result.description}</p>
               </div>
               {result.thumbnail && (
-                <div className="w-32 h-24 rounded overflow-hidden">
-                  <img src={result.thumbnail} alt={result.title} className="w-full h-full object-cover" />
+                <div className="w-32 h-24 rounded overflow-hidden relative">
+                  <Image 
+                    src={result.thumbnail} 
+                    alt={result.title} 
+                    width={128}
+                    height={96}
+                    className="object-cover"
+                  />
                 </div>
               )}
             </div>
@@ -86,4 +94,3 @@ export default function SearchResults({ results, query, isLoading }: SearchResul
     </div>
   )
 }
-
