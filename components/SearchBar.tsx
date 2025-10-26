@@ -72,7 +72,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
           type="button"
           className="px-6 py-2 glass text-white rounded-lg hover:glass-strong transition-all"
         >
-          I'm Feeling Lucky
+          I&apos;m Feeling Lucky
         </button>
       </div>
     </form>
