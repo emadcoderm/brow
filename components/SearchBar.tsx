@@ -6,10 +6,9 @@ interface SearchBarProps {
   onSearch: (query: string) => void
   showResultsPage?: boolean
   defaultQuery?: string
-  onQueryChange?: (query: string) => void
 }
 
-export default function SearchBar({ onSearch, showResultsPage = false, defaultQuery = '', onQueryChange }: SearchBarProps) {
+export default function SearchBar({ onSearch, showResultsPage = false, defaultQuery = '' }: SearchBarProps) {
   const [query, setQuery] = useState(defaultQuery)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -18,14 +17,6 @@ export default function SearchBar({ onSearch, showResultsPage = false, defaultQu
       inputRef.current?.focus()
     }
   }, [showResultsPage])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newQuery = e.target.value
-    setQuery(newQuery)
-    if (onQueryChange) {
-      onQueryChange(newQuery)
-    }
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,7 +34,7 @@ export default function SearchBar({ onSearch, showResultsPage = false, defaultQu
             ref={inputRef}
             type="text"
             value={query}
-            onChange={handleChange}
+            onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-12 pr-12 py-2.5 text-sm rounded-full border border-gray-300 hover:shadow-md focus:outline-none focus:shadow-md transition-all"
             placeholder=""
           />
@@ -82,7 +73,7 @@ export default function SearchBar({ onSearch, showResultsPage = false, defaultQu
             ref={inputRef}
             type="text"
             value={query}
-            onChange={handleChange}
+            onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-14 pr-14 py-3 text-base rounded-full border border-gray-300 hover:shadow-md focus:outline-none focus:shadow-md focus:border-transparent transition-all"
           />
         </div>

@@ -11,6 +11,7 @@ export default function SearchResults({ results, query, isLoading }: SearchResul
     return (
       <div className="flex items-center justify-center mt-12">
         <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-300 border-t-blue-500"></div>
+        <p className="ml-4 text-gray-600">Searching...</p>
       </div>
     )
   }

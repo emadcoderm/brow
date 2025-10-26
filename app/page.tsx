@@ -8,27 +8,33 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [currentInputQuery, setCurrentInputQuery] = useState('')
 
   const handleSearch = async (query: string) => {
     if (!query.trim()) return
     
     setSearchQuery(query)
     setIsLoading(true)
+    setSearchResults(null)
 
     try {
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
       const data = await response.json()
+      console.log('Search response:', data)
       setSearchResults(data)
-      console.log('Search results:', data)
     } catch (error) {
       console.error('Search error:', error)
+      setSearchResults({
+        query: query,
+        results: [],
+        total_results: 0,
+        search_time: '0.00',
+        error: 'Failed to fetch results'
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
-  // اگر نتایج داریم، صفحه نتایج را نشان بده
   const showResults = searchResults !== null
 
   return (
@@ -50,18 +56,18 @@ export default function Home() {
           </header>
 
           <main className="flex-1 flex flex-col items-center justify-center">
-            <div className="text-6xl font-light mb-8">
+            <div className="text-6xl font-light mb-8 text-center">
               Aula
             </div>
             
-            <div className="w-full max-w-2xl px-4 mb-8">
-              <SearchBar onSearch={handleSearch} onQueryChange={setCurrentInputQuery} />
+            <div className="w-full max-w-2xl px-4">
+              <SearchBar onSearch={handleSearch} />
             </div>
 
             <div className="flex gap-4 mt-6">
               <button 
                 type="button"
-                onClick={() => currentInputQuery && handleSearch(currentInputQuery)}
+                onClick={() => handleSearch('test')}
                 className="px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-transparent hover:border-gray-200 text-sm text-gray-700 rounded-md"
               >
                 Aula Search
@@ -99,7 +105,7 @@ export default function Home() {
         <div>
           <header className="flex items-center justify-between px-6 py-3 border-b border-gray-200">
             <div className="flex items-center gap-6">
-              <a href="/" className="text-2xl font-light text-blue-700">Aula</a>
+              <a href="/" className="text-2xl font-light text-blue-700 hover:underline">Aula</a>
               <SearchBar onSearch={handleSearch} showResultsPage={true} defaultQuery={searchQuery} />
             </div>
             <div className="flex items-center gap-4">
@@ -119,6 +125,7 @@ export default function Home() {
             {isLoading ? (
               <div className="flex items-center justify-center mt-12">
                 <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-300 border-t-blue-500"></div>
+                <p className="ml-4 text-gray-600">Loading results...</p>
               </div>
             ) : (
               <SearchResults 
@@ -133,4 +140,3 @@ export default function Home() {
     </div>
   )
 }
-
