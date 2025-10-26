@@ -20,7 +20,6 @@ export const runtime = 'nodejs'
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get('q')
-  const type = searchParams.get('type') || 'all'
 
   if (!query) {
     return NextResponse.json({ error: 'Query is required' }, { status: 400 })
@@ -28,36 +27,51 @@ export async function GET(request: NextRequest) {
 
   try {
     const apiKey = getNextApiKey()
-    
-    // استفاده از API واقعی
     const apiUrl = `https://s1.ntrod.com/api/search?q=${encodeURIComponent(query)}&api_key=${apiKey}`
     
     console.log('Calling API:', apiUrl)
 
     const response = await axios.get(apiUrl, {
-      timeout: 10000,
+      timeout: 15000,
       headers: {
         'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0'
       }
     })
 
-    console.log('API Response:', response.data)
+    console.log('API Response:', JSON.stringify(response.data, null, 2))
 
-    // بررسی ساختار پاسخ API
-    if (!response.data || !Array.isArray(response.data)) {
-      throw new Error('Invalid API response format')
+    // Handle different API response structures
+    let results = []
+    
+    if (Array.isArray(response.data)) {
+      // If response is array
+      results = response.data
+    } else if (response.data.organic && Array.isArray(response.data.organic)) {
+      // If response has organic results
+      results = response.data.organic
+    } else if (response.data.results && Array.isArray(response.data.results)) {
+      // If response has results array
+      results = response.data.results
+    } else {
+      throw new Error('Unknown API response structure')
     }
 
     const transformedResults = {
       query: query,
-      results: response.data.map((result: any) => ({
-        title: result.title || result.headline || 'No title',
-        description: result.description || result.snippet || '',
-        url: result.url || result.link || '#',
-        domain: result.domain || (result.url ? new URL(result.url).hostname : 'unknown'),
-        thumbnail: result.thumbnail || result.image
-      })),
-      total_results: response.data.length || 0,
+      results: results.map((result: any) => {
+        const snippet = result.snippet || result.text || ''
+        const titlePreview = snippet.substring(0, 50)
+        
+        return {
+          title: result.title || result.headline || titlePreview || 'Untitled',
+          description: result.description || snippet || result.text || '',
+          url: result.url || result.link || '#',
+          domain: result.domain || (result.url ? new URL(result.url).hostname : 'unknown'),
+          thumbnail: result.thumbnail || result.image || null
+        }
+      }),
+      total_results: results.length,
       search_time: '0.00'
     }
 
@@ -65,13 +79,12 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Search API error:', error.message)
     
-    // Return empty results instead of fake data
     return NextResponse.json({
       query: query,
       results: [],
       total_results: 0,
       search_time: '0.00',
-      error: 'API is temporarily unavailable. Please try again later.'
+      error: 'Unable to fetch results. Please verify API key and endpoint.'
     })
   }
 }
