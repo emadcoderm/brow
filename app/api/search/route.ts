@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 
-// API keys for rotation
 const API_KEYS = [
   'ba3b0732a47bf26269b3e9160ea7618022b61352',
   '2c9a5a6cbf34b0fbaeeec8756fa596fc57c5e529',
   'e5be0c24eb41e337bc213b243a366ee18612683b'
 ]
 
-// Simple counter for API rotation
 let apiIndex = 0
 
 const getNextApiKey = () => {
@@ -16,6 +14,9 @@ const getNextApiKey = () => {
   apiIndex = (apiIndex + 1) % API_KEYS.length
   return key
 }
+
+// Set runtime to Node.js for Netlify
+export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -30,7 +31,6 @@ export async function GET(request: NextRequest) {
     const apiKey = getNextApiKey()
     const baseUrl = 'https://s1.ntrod.com/api'
     
-    // Map search types to API endpoints
     const endpoints: Record<string, string> = {
       all: '/search',
       web: '/search',
@@ -42,9 +42,10 @@ export async function GET(request: NextRequest) {
     const endpoint = endpoints[type] || '/search'
     const url = `${baseUrl}${endpoint}?q=${encodeURIComponent(query)}&api_key=${apiKey}`
 
-    const response = await axios.get(url)
+    const response = await axios.get(url, {
+      timeout: 10000, // 10 second timeout
+    })
 
-    // Transform the API response to match our structure
     const transformedResults = {
       query: query,
       results: (response.data.results || []).map((result: any) => ({
@@ -60,9 +61,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(transformedResults)
   } catch (error: any) {
-    console.error('Search API error:', error)
+    console.error('Search API error:', error.message)
     
-    // Return mock data for demonstration
+    // Return mock data on error
     return NextResponse.json({
       query: query,
       results: [
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
         },
         {
           title: 'Example Result 2',
-          description: 'Another example result to demonstrate the search functionality. Replace with your actual API integration.',
+          description: 'Another example result to demonstrate the search functionality.',
           url: 'https://example2.com',
           domain: 'example2.com',
           thumbnail: null
@@ -86,4 +87,3 @@ export async function GET(request: NextRequest) {
     })
   }
 }
-
