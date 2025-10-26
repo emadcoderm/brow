@@ -8,6 +8,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [currentInputQuery, setCurrentInputQuery] = useState('')
 
   const handleSearch = async (query: string) => {
     if (!query.trim()) return
@@ -19,6 +20,7 @@ export default function Home() {
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
       const data = await response.json()
       setSearchResults(data)
+      console.log('Search results:', data)
     } catch (error) {
       console.error('Search error:', error)
     } finally {
@@ -27,7 +29,7 @@ export default function Home() {
   }
 
   // اگر نتایج داریم، صفحه نتایج را نشان بده
-  const showResults = searchResults && searchResults.results && searchResults.results.length > 0
+  const showResults = searchResults !== null
 
   return (
     <div className="min-h-screen bg-white">
@@ -52,18 +54,19 @@ export default function Home() {
               Aula
             </div>
             
-            <div className="w-full max-w-2xl px-4">
-              <SearchBar onSearch={handleSearch} />
+            <div className="w-full max-w-2xl px-4 mb-8">
+              <SearchBar onSearch={handleSearch} onQueryChange={setCurrentInputQuery} />
             </div>
 
             <div className="flex gap-4 mt-6">
               <button 
-                onClick={() => searchQuery && handleSearch(searchQuery)}
+                type="button"
+                onClick={() => currentInputQuery && handleSearch(currentInputQuery)}
                 className="px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-transparent hover:border-gray-200 text-sm text-gray-700 rounded-md"
               >
                 Aula Search
               </button>
-              <button className="px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-transparent hover:border-gray-200 text-sm text-gray-700 rounded-md">
+              <button type="button" className="px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-transparent hover:border-gray-200 text-sm text-gray-700 rounded-md">
                 I&apos;m Feeling Lucky
               </button>
             </div>
