@@ -33,7 +33,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      {!showResults ? (
+      {!showResults && !isLoading ? (
         // صفحه اصلی - مثل Google
         <div className="flex flex-col h-screen">
           <header className="flex justify-end items-center p-4 gap-4">
@@ -99,7 +99,7 @@ export default function Home() {
         <div>
           <header className="flex items-center justify-between px-6 py-3 border-b border-gray-200">
             <div className="flex items-center gap-6">
-              <div className="text-2xl font-light text-gray-700">Aula</div>
+              <a href="/" className="text-2xl font-light text-blue-700">Aula</a>
               <SearchBar onSearch={handleSearch} showResultsPage={true} defaultQuery={searchQuery} />
             </div>
             <div className="flex items-center gap-4">
@@ -116,11 +116,17 @@ export default function Home() {
           </header>
 
           <main>
-            <SearchResults 
-              results={searchResults} 
-              query={searchQuery}
-              isLoading={isLoading}
-            />
+            {isLoading ? (
+              <div className="flex items-center justify-center mt-12">
+                <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-300 border-t-blue-500"></div>
+              </div>
+            ) : (
+              <SearchResults 
+                results={searchResults} 
+                query={searchQuery}
+                isLoading={isLoading}
+              />
+            )}
           </main>
         </div>
       )}
